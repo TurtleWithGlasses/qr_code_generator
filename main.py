@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import qrcode
@@ -19,13 +20,15 @@ class App(ctk.CTk):
         # Entry field
         self.entry_string = ctk.StringVar()
         self.entry_string.trace("w", self.create_qr)
-        EntryField(self, self.entry_string)
+        EntryField(self, self.entry_string, self.save)
+
+        # event
+        self.bind("<Return>", self.save)
 
         # QR code
-        # image = Image.open(placeholder_img).resize((200,200))
-        # image_tk = ImageTk.PhotoImage(image)
+        self.image = None
+        self.image_tk = None
         self.qr_image = QrImage(self)
-        # self.qr_image.update_image(image_tk)
 
         # running the app
         self.mainloop()
@@ -38,10 +41,18 @@ class App(ctk.CTk):
             self.qr_image.update_image(self.image_tk)
         else:
             self.qr_image.clear()
+            self.image = None
+            self.image_tk = None
         
+    def save(self, event):
+        if self.image:
+            file_path = filedialog.asksaveasfilename()
+
+            if file_path:
+                self.image.save(file_path + ".png")
 
 class EntryField(ctk.CTkFrame):
-    def __init__(self,parent, entry_string):
+    def __init__(self,parent, entry_string, save_func):
         super().__init__(parent, corner_radius=20, fg_color="#021FB3")
         self.place(relx=0.5, rely=1, relwidth=1, relheight=0.4, anchor="center")
 
@@ -60,7 +71,7 @@ class EntryField(ctk.CTkFrame):
         entry = ctk.CTkEntry(self.frame, fg_color="#2E54E8", border_width=0,text_color="white",textvariable=entry_string)
         entry.grid(row=0, column=1, sticky="nsew")
 
-        button = ctk.CTkButton(self.frame, text="Save", fg_color="#2E54E8", hover_color="#4266f1")
+        button = ctk.CTkButton(self.frame, text="Save", fg_color="#2E54E8", hover_color="#4266f1",command=lambda: save_func(""))
         button.grid(row=0, column=2, sticky="nsew", padx=10)
 
 class QrImage(tk.Canvas):
