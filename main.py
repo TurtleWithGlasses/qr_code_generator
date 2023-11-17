@@ -1,6 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from PIL import Image, ImageTk
+import qrcode
 
 placeholder_img = "C:\\Users\\mhmts\\PycharmProjects\\qr_code\\qr+progress\\1 qr\\1 intro\\Placeholder.png"
 
@@ -16,20 +17,31 @@ class App(ctk.CTk):
         self.title("")
 
         # Entry field
-        EntryField(self)
+        self.entry_string = ctk.StringVar()
+        self.entry_string.trace("w", self.create_qr)
+        EntryField(self, self.entry_string)
 
         # QR code
-        image = Image.open(placeholder_img).resize((200,200))
-        image_tk = ImageTk.PhotoImage(image)
+        # image = Image.open(placeholder_img).resize((200,200))
+        # image_tk = ImageTk.PhotoImage(image)
         self.qr_image = QrImage(self)
-        self.qr_image.update_image(image_tk)
+        # self.qr_image.update_image(image_tk)
 
         # running the app
         self.mainloop()
+
+    def create_qr(self, *args):
+        current_text = self.entry_string.get()
+        if current_text:
+            self.image = qrcode.make(current_text).resize((200,200))
+            self.image_tk = ImageTk.PhotoImage(self.image)
+            self.qr_image.update_image(self.image_tk)
+        else:
+            self.qr_image.clear()
         
 
 class EntryField(ctk.CTkFrame):
-    def __init__(self,parent):
+    def __init__(self,parent, entry_string):
         super().__init__(parent, corner_radius=20, fg_color="#021FB3")
         self.place(relx=0.5, rely=1, relwidth=1, relheight=0.4, anchor="center")
 
@@ -45,7 +57,7 @@ class EntryField(ctk.CTkFrame):
         self.frame.columnconfigure(3, weight=1, uniform="b")
         self.frame.grid(row=0, column=0)
 
-        entry = ctk.CTkEntry(self.frame, fg_color="#2E54E8", border_width=0,text_color="white")
+        entry = ctk.CTkEntry(self.frame, fg_color="#2E54E8", border_width=0,text_color="white",textvariable=entry_string)
         entry.grid(row=0, column=1, sticky="nsew")
 
         button = ctk.CTkButton(self.frame, text="Save", fg_color="#2E54E8", hover_color="#4266f1")
@@ -53,11 +65,14 @@ class EntryField(ctk.CTkFrame):
 
 class QrImage(tk.Canvas):
     def __init__(self, parent):
-        super().__init__(master=parent, background="red", bd=0,highlightthickness=0,relief="ridge")
+        super().__init__(master=parent, background="white", bd=0,highlightthickness=0,relief="ridge")
         self.place(relx=0.5, rely=0.4, width=200, height=200, anchor="center")
     
     def update_image(self, image_tk):
+        self.clear()
         self.create_image(0,0, image=image_tk,anchor="nw")
 
+    def clear(self):
+        self.delete("all")
 
 App()
